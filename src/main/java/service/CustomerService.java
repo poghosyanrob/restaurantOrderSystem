@@ -19,7 +19,7 @@ public class CustomerService {
         String sql = "INSERT INTO customer (name,phone,email) VALUES (?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);) {
             statement.setString(1, customer.getName());
-            statement.setString(2, String.valueOf(customer.getPhone()));
+            statement.setString(2, customer.getPhone());
             statement.setString(3, String.valueOf(customer.getEmail()));
             statement.execute();
             ResultSet resultSet = statement.getGeneratedKeys();
@@ -65,7 +65,7 @@ public class CustomerService {
         Customer customer = new Customer();
         customer.setId(resultSet.getInt("id"));
         customer.setName(resultSet.getString("name"));
-        customer.setPhone(resultSet.getInt("phone"));
+        customer.setPhone(resultSet.getString("phone"));
         customer.setEmail(resultSet.getString("email"));
         return customer;
     }

@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 public class Customer {
     private int id;
     private String name;
-    private int phone;
+    private String phone;
     private String email;
 }

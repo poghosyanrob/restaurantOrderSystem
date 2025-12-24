@@ -190,7 +190,7 @@ public class RestaurantOrderSystem implements Commands {
         String[] customerArr = customerStr.split(",");
         Customer customer = new Customer();
         customer.setName(customerArr[0]);
-        customer.setPhone(Integer.parseInt(customerArr[1]));
+        customer.setPhone((customerArr[1]));
         customer.setEmail(customerArr[2]);
         customerService.addCustomer(customer);
         System.out.println("Customer added successfully!");

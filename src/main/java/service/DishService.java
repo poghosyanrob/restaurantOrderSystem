@@ -21,7 +21,7 @@ public class DishService {
         try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);) {
             statement.setString(1, dish.getName());
             statement.setString(2, String.valueOf(dish.getCategory()));
-            statement.setString(3, String.valueOf(dish.getPrice()));
+            statement.setDouble(3, dish.getPrice());
             statement.setBoolean(4, dish.isAvailable());
             statement.execute();
             ResultSet resultSet = statement.getGeneratedKeys();
@@ -49,7 +49,7 @@ public class DishService {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, dish.getName());
             statement.setString(2, String.valueOf(dish.getCategory()));
-            statement.setString(3, String.valueOf(dish.getPrice()));
+            statement.setDouble(3, dish.getPrice());
             statement.setBoolean(4, dish.isAvailable());
             statement.setInt(5, dish.getId());
             statement.executeUpdate();
@@ -89,16 +89,6 @@ public class DishService {
 
     }
 
-    private static Dish getDish(ResultSet resultSet) throws SQLException {
-        Dish dish = new Dish();
-        dish.setId(resultSet.getInt("id"));
-        dish.setName(resultSet.getString("name"));
-        dish.setCategory(Category.valueOf(resultSet.getString("category")));
-        dish.setPrice(resultSet.getDouble("price"));
-        dish.isAvailable();
-        return dish;
-    }
-
     public List<Dish> getDishByCategory(Category category) {
         String sql = "SELECT * FROM dish WHERE category = ?";
         List<Dish> dishList = new ArrayList<>();
@@ -114,4 +104,13 @@ public class DishService {
         return dishList;
     }
 
+    private static Dish getDish(ResultSet resultSet) throws SQLException {
+        Dish dish = new Dish();
+        dish.setId(resultSet.getInt("id"));
+        dish.setName(resultSet.getString("name"));
+        dish.setCategory(Category.valueOf(resultSet.getString("category")));
+        dish.setPrice(resultSet.getDouble("price"));
+        dish.isAvailable();
+        return dish;
+    }
 }
