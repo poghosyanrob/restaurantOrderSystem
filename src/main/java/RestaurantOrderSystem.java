@@ -11,6 +11,7 @@ import service.OrderItemService;
 import service.OrderService;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class RestaurantOrderSystem implements Commands {
@@ -71,7 +72,7 @@ public class RestaurantOrderSystem implements Commands {
                     printMenu();
                     break;
                 default:
-                    System.out.println("Wrong command! Try again");
+                    System.err.println("Wrong command! Try again");
 
             }
         }
@@ -81,15 +82,16 @@ public class RestaurantOrderSystem implements Commands {
     private static void printOrdersByCustomer() {
         System.out.println("Please input customer id which you would like to see");
         int customerId = Integer.parseInt(scanner.nextLine());
-        Customer getCustomer = customerService.getCustomerById(customerId);
-        if (getCustomer != null) {
-            List<Order> customerOrders = orderService.getCustomerOrders(customerId);
-            for (Order customerOrder : customerOrders) {
-                System.out.println(customerOrder);
-            }
-        } else {
-            System.out.println("Wrong customer id");
-        }
+        Optional<Customer> getCustomer = Optional.ofNullable(customerService.getCustomerById(customerId));
+        getCustomer.ifPresentOrElse(
+                customer -> {
+                    List<Order> customerOrders = orderService.getCustomerOrders(customerId);
+                    for (Order customerOrder : customerOrders) {
+                        System.out.println(customerOrder);
+                    }
+                },
+                () -> System.err.println("Wrong customer id")
+        );
     }
 
     private static void printMenu() {
@@ -124,10 +126,10 @@ public class RestaurantOrderSystem implements Commands {
                 orderService.changeOrderStatus(orderForUpdateStatus);
                 System.out.println("Order status updated successfully!");
             } else {
-                System.out.println("You can't update status!");
+                System.err.println("You can't update status!");
             }
         } else {
-            System.out.println("Wrong order id");
+            System.err.println("Wrong order id");
         }
 
     }
@@ -169,10 +171,10 @@ public class RestaurantOrderSystem implements Commands {
                 orderService.updateOrder(order);
                 System.out.println("Order added successfully!");
             } else {
-                System.out.println("Wrong dish id");
+                System.err.println("Wrong dish id");
             }
         } else {
-            System.out.println("Wrong customer id");
+            System.err.println("Wrong customer id");
         }
     }
 
@@ -205,14 +207,14 @@ public class RestaurantOrderSystem implements Commands {
     private static void deleteDish() {
         System.out.println("Please input dishes' id that you would like to delete");
         int id = Integer.parseInt(scanner.nextLine());
-        Dish dishById = dishService.getDishById(id);
-        if (dishById != null) {
-            dishService.deleteDish(id);
-            System.out.println("Dish deleted successfully!");
-        } else {
-            System.out.println("Wrong dish's id");
-        }
-
+        Optional<Dish> dishById = Optional.ofNullable(dishService.getDishById(id));
+        dishById.ifPresentOrElse(
+                dish -> {
+                    dishService.deleteDish(id);
+                    System.out.println("Dish deleted successfully!");
+                },
+                () -> System.err.println("Wrong dish's id")
+        );
     }
 
     private static void printDishes() {
