@@ -33,26 +33,24 @@ public class OrderItemService {
         }
     }
 
-    public List<OrderItem> getOrderItem(int id) {
+    public OrderItem getOrderItem(int id) {
         String sql = "SELECT * FROM order_item WHERE order_id = ?";
-        List<OrderItem> orderItemList = new ArrayList<>();
+        OrderItem orderItem = new OrderItem();
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                OrderItem orderItem = new OrderItem();
+            if (resultSet.next()) {
                 orderItem.setId(resultSet.getInt("id"));
                 orderItem.setOrder(orderService.getOrderById(resultSet.getInt("order_id")));
                 orderItem.setDish(dishService.getDishById(resultSet.getInt("dish_id")));
                 orderItem.setQuantity(resultSet.getInt("quantity"));
                 orderItem.setPrice(resultSet.getDouble("price"));
-                orderItemList.add(orderItem);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return orderItemList;
+        return orderItem;
     }
 
 }

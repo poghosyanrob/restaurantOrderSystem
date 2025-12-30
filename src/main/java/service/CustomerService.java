@@ -20,7 +20,7 @@ public class CustomerService {
         try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);) {
             statement.setString(1, customer.getName());
             statement.setString(2, customer.getPhone());
-            statement.setString(3, String.valueOf(customer.getEmail()));
+            statement.setString(3, customer.getEmail());
             statement.execute();
             ResultSet resultSet = statement.getGeneratedKeys();
             if (resultSet.next()) {

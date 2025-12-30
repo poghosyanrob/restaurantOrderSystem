@@ -45,7 +45,7 @@ public class DishService {
     }
 
     public void changeDish(Dish dish) {
-        String sql = "UPDATE dish SET  name = ?, category = ?,price = ?,available = ?  WHERE id = ?";
+        String sql = "UPDATE dish SET name = ?, category = ?,price = ?,available = ?  WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, dish.getName());
             statement.setString(2, String.valueOf(dish.getCategory()));
@@ -65,8 +65,7 @@ public class DishService {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                Dish dish = getDish(resultSet);
-                return dish;
+                return getDish(resultSet);
             }
         } catch (SQLException e) {
             e.printStackTrace();

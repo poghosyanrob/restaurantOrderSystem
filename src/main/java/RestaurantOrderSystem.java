@@ -96,42 +96,62 @@ public class RestaurantOrderSystem implements Commands {
 
     private static void printMenu() {
         System.out.println("Please input category which you would like ");
-        Category category = Category.valueOf(scanner.nextLine().toUpperCase());
-        List<Dish> dishByCategory = dishService.getDishByCategory(category);
-        for (Dish dish : dishByCategory) {
-            System.out.println(dish);
+        String categoryStr = scanner.nextLine().toUpperCase();
+        switch (categoryStr) {
+            case "APPETIZER" :
+            case "MAIN":
+            case "DESSERT":
+            case "DRINK":
+                Category category = Category.valueOf(categoryStr);
+                List<Dish> dishByCategory = dishService.getDishByCategory(category);
+                    for (Dish dish : dishByCategory) {
+                        System.out.println(dish);
+                    };
+                    break;
+            default: System.err.println("Wrong category");
         }
     }
 
     private static void printOrderItems() {
         System.out.println("Please input order id which you  would like to see orders in detail");
         int orderIdForShowOrderItems = Integer.parseInt(scanner.nextLine());
-        List<OrderItem> orderItem = orderItemService.getOrderItem(orderIdForShowOrderItems);
-        for (OrderItem item : orderItem) {
-            System.out.println(item);
-        }
+        Optional<Order> orderOptional = Optional.ofNullable(orderService.getOrderById(orderIdForShowOrderItems));
+        orderOptional.ifPresentOrElse(
+                order -> {
+                    System.out.println(orderItemService.getOrderItem(order.getId()));
+                },()-> System.err.println("Wrong order's id")
+        );
     }
 
     private static void statusUpdate() {
         System.out.println("Please input order id which you would like to UPDATE ORDER STATUS ");
         int orderIdForStatus = Integer.parseInt(scanner.nextLine());
         Order orderForUpdateStatus = orderService.getOrderById(orderIdForStatus);
-        if (orderForUpdateStatus != null) {
-            printStatus();
-            String status = scanner.nextLine().toUpperCase();
-            Status updateStatus = Status.valueOf(status);
-            Status previousStatus = orderForUpdateStatus.getStatus();
-            if (updateStatus.ordinal() > previousStatus.ordinal()) {
-                orderForUpdateStatus.setStatus(updateStatus);
-                orderService.changeOrderStatus(orderForUpdateStatus);
-                System.out.println("Order status updated successfully!");
-            } else {
-                System.err.println("You can't update status!");
-            }
-        } else {
-            System.err.println("Wrong order id");
-        }
-
+        Optional<Order> orderStatusOptional = Optional.ofNullable(orderForUpdateStatus);
+        orderStatusOptional.ifPresentOrElse(
+                order -> {
+                    printStatus();
+                    String status = scanner.nextLine().toUpperCase();
+                    switch (status) {
+                        case "PENDING" :
+                        case "PREPARING":
+                        case "READY":
+                        case "DELIVERED":
+                            Status updateStatus = Status.valueOf(status);
+                            Status previousStatus = order.getStatus();
+                            if (updateStatus.ordinal() > previousStatus.ordinal()) {
+                                order.setStatus(updateStatus);
+                                orderService.changeOrderStatus(order);
+                                System.out.println("Order status updated successfully!");
+                            } else {
+                                System.err.println("You can't update status!");
+                            }
+                            break;
+                        default: System.err.println("Wrong status");
+                    }
+                },
+                () -> System.err.println("Wrong order's id")
+        );
     }
 
     private static void printStatus() {
@@ -155,27 +175,36 @@ public class RestaurantOrderSystem implements Commands {
         System.out.println("Please input customer id");
         int customerId = Integer.parseInt(scanner.nextLine());
         Customer customerById = customerService.getCustomerById(customerId);
-        if (customerById != null) {
-            Order order = new Order(customerById);
-            orderService.createOrder(order);
-            printDishes();
-            System.out.println("Please input dish id");
-            int dishId = Integer.parseInt(scanner.nextLine());
-            Dish dish = dishService.getDishById(dishId);
-            if (dish != null) {
-                System.out.println("Please input order quantity");
-                int quantity = Integer.parseInt(scanner.nextLine());
-                OrderItem orderItem = new OrderItem(order, dish, quantity);
-                orderItemService.createOrderItem(orderItem);
-                order.setTotalPrice(orderItem.getPrice() * orderItem.getQuantity());
-                orderService.updateOrder(order);
-                System.out.println("Order added successfully!");
-            } else {
-                System.err.println("Wrong dish id");
-            }
-        } else {
-            System.err.println("Wrong customer id");
-        }
+        Optional<Customer> customerByIdOptional = Optional.ofNullable(customerById);
+        customerByIdOptional.ifPresentOrElse(
+                customer -> {
+                    Order order = new Order(customerById);
+                    orderService.createOrder(order);
+                    printDishes();
+                    System.out.println("Please input dish id");
+                    int dishId = Integer.parseInt(scanner.nextLine());
+                    Dish dishById = dishService.getDishById(dishId);
+                    Optional<Dish> dishByIdOptional = Optional.ofNullable(dishById);
+                    dishByIdOptional.ifPresentOrElse(
+                            dish -> {
+                                System.out.println("Please input order quantity");
+                                try {
+                                    int quantity = Integer.parseInt(scanner.nextLine());
+                                    dish.setPrice(quantity);
+                                    OrderItem orderItem = new OrderItem(order, dish, quantity);
+                                    orderItemService.createOrderItem(orderItem);
+                                    order.setTotalPrice(orderItem.getPrice() * orderItem.getQuantity());
+                                    orderService.updateOrder(order);
+                                    System.out.println("Order added successfully!");
+                                }catch ( NumberFormatException e){
+                                    System.err.println(e.getMessage());
+                                }
+                            },
+                            () -> System.err.println("Wrong dish's id")
+                    );
+                },
+                () -> System.err.println("Wrong customer's id")
+        );
     }
 
     private static void printCustomers() {
@@ -199,9 +228,38 @@ public class RestaurantOrderSystem implements Commands {
     }
 
     private static void dishUpdate() {
-        System.out.println("Please input dishes name, category, price which you would like to update");
-        dishService.changeDish(getDish());
-        System.out.println("Dish updated successfully!");
+        System.out.println("Please input dishes id which you would like to update");
+        int id = Integer.parseInt(scanner.nextLine());
+        Dish dishById = dishService.getDishById(id);
+        Optional<Dish> dishByIdOptional = Optional.ofNullable(dishById);
+        dishByIdOptional.ifPresentOrElse(
+                dish -> {
+                    System.out.println(dishById);
+                    System.out.println("Please input dish name, category, price  for update");
+                    String dishStr = scanner.nextLine();
+                    String[] dishArr = dishStr.split(",");
+                    dishById.setName(dishArr[0]);
+                    String category = dishArr[1].toUpperCase();
+                    switch (category) {
+                        case "APPETIZER" :
+                        case "MAIN":
+                        case "DESSERT":
+                        case "DRINK":
+                            dishById.setCategory(Category.valueOf(category));
+                            break;
+                        default: System.err.println("Wrong category");
+                    }
+                    try {
+                        dish.setPrice(Double.parseDouble(dishArr[2]));
+                        dishService.changeDish(dishById);
+                        System.out.println("Dish updated successfully!");
+                        printDishes();
+                    }catch ( NumberFormatException e){
+                        System.err.println(e.getMessage());
+                    }
+                },
+                () -> System.err.println("Wrong dish's id")
+        );
     }
 
     private static void deleteDish() {
@@ -228,20 +286,42 @@ public class RestaurantOrderSystem implements Commands {
     private static void addDishes() {
         printCategory();
         System.out.println("Please input name, category, price");
-        dishService.addDish(getDish());
-        System.out.println("Dish added successfully!");
-
+        String dishStr = scanner.nextLine();
+        Optional<Dish> dishOptional = Optional.ofNullable(getDish(dishStr));
+        dishOptional.ifPresentOrElse(
+                dish -> {
+                    dishService.addDish(getDish(dishStr));
+                    System.out.println("Dish added successfully!");
+                },()->System.err.println("Dish is invalid!")
+        );
     }
 
-    private static Dish getDish() {
-        String dishStr = scanner.nextLine();
+    private static Dish getDish(String dishStr) {
         String[] dishArr = dishStr.split(",");
         Dish dish = new Dish();
         dish.setName(dishArr[0]);
-        dish.setCategory(Category.valueOf(dishArr[1].toUpperCase()));
-        dish.setPrice(Double.parseDouble(dishArr[2]));
-        return dish;
-    }
+        String category = dishArr[1].toUpperCase();
+        boolean isCategory = false;
+        switch (category) {
+            case "APPETIZER" :
+            case "MAIN":
+            case "DESSERT":
+            case "DRINK":
+                dish.setCategory(Category.valueOf(category));
+                isCategory = true;
+                break;
+            default: System.err.println("Wrong category");
+        }
+        if(isCategory){
+            try {
+                dish.setPrice(Double.parseDouble(dishArr[2]));
+                return dish;
+            }catch ( NumberFormatException e){
+                System.err.println(e.getMessage());
+            }
+        }
+        return null;
+    };
 
     private static void printCategory() {
         Category[] categories = Category.values();
